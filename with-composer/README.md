@@ -1,6 +1,6 @@
 # Composer Setup and Authentication Class
 
-This guide explains how to set up Composer's PSR-4 autoloading for an `Authentication` class. This is a separate example from the manual-loading and SPL-autoloading demo in [`without-composer/`](../without-composer/README.md).
+This guide explains how to set up Composer's PSR-4 autoloading for an authentication class stored in `app/Models/`. This is a separate example from the manual-loading and SPL-autoloading demo in [`without-composer/`](../without-composer/README.md).
 
 ## 1. Install and check Composer
 
@@ -20,7 +20,7 @@ From this folder, create the following structure:
 ```text
 with-composer/
 ├── app/
-│   └── Services/
+│   └── Models/
 │       └── Authentication.php
 ├── composer.json
 └── run.php
@@ -42,32 +42,30 @@ In `composer.json`, map the `App\` namespace to the `app/` folder:
 }
 ```
 
-This mapping means that the class `App\Services\Authentication` should be in `app/Services/Authentication.php`.
+This mapping means that the class `App\Models\Authentication` should be in `app/Models/Authentication.php`.
 
 ## 4. Create the Authentication class
 
-In `app/Services/Authentication.php`, declare the matching namespace and class. For this demo, the class can receive a password hash and use `password_verify()` to check a supplied password:
+In `app/Models/Authentication.php`, declare the matching namespace and class. For this basic demo, its public `login()` method checks hard-coded credentials:
 
 ```php
 <?php
 
-namespace App\Services;
+namespace App\Models;
 
 class Authentication
 {
-    public function __construct(
-        private string $passwordHash
-    ) {
-    }
-
-    public function authenticate(string $password): bool
+    public function login(string $username, string $password): bool
     {
-        return password_verify($password, $this->passwordHash);
+        $validUsername = 'admin';
+        $validPassword = '1234';
+
+        return $username === $validUsername && $password === $validPassword;
     }
 }
 ```
 
-`authenticate()` returns `true` when the supplied password matches the hash, and `false` otherwise. In a real application, the hash would normally be retrieved from a database; this short example is for learning class autoloading, not a complete login system.
+The `App\Models` namespace matches the `app/Models/` directory, and the class name matches the `Authentication.php` filename. Although this example puts the class in `Models` as shown in the directory structure, authentication logic is commonly organized as a service in a larger application. These hard-coded credentials are only for demonstration.
 
 ## 5. Install the project dependencies and generate the autoloader
 
@@ -94,14 +92,13 @@ In `run.php`, include Composer's generated autoloader, then use the class:
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use App\Services\Authentication;
+use App\Models\Authentication;
 
-$storedPasswordHash = password_hash('demo-password', PASSWORD_DEFAULT);
-$authentication = new Authentication($storedPasswordHash);
+$authentication = new Authentication();
 
-echo $authentication->authenticate('demo-password')
-    ? 'Authentication successful.'
-    : 'Authentication failed.';
+echo $authentication->login('admin', '1234')
+    ? 'Login successful.'
+    : 'Login failed.';
 echo PHP_EOL;
 ```
 
@@ -118,10 +115,10 @@ php .\run.php
 Expected output:
 
 ```text
-Authentication successful.
+Login successful.
 ```
 
-The supplied `run.php` also checks an incorrect password and prints `Authentication failed.` for that check.
+This example uses hard-coded credentials for demonstration only. Do not use this approach in a real application.
 
 ## Troubleshooting
 

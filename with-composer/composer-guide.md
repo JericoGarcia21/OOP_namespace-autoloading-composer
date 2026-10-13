@@ -1,6 +1,6 @@
 # Set Up a PHP Project with Composer
 
-This guide walks through creating a small PHP project from scratch and setting up Composer PSR-4 autoloading. Work in the `with-composer` folder; it is a separate example from the demos in `without-composer`.
+This guide walks through creating a small PHP project from scratch and setting up Composer PSR-4 autoloading for an authentication class stored in the `Models` folder. Work in the `with-composer` folder; it is a separate example from the demos in `without-composer`.
 
 ## 1. Check PHP and Composer
 
@@ -18,15 +18,15 @@ This example uses PHP 8 or later. If either command is not recognized, install P
 From the `with-composer` folder, create the folders:
 
 ```powershell
-New-Item -ItemType Directory -Force app\Services
+New-Item -ItemType Directory -Force app\Models
 ```
 
-Then create these three files in VS Code (or another editor):
+Then create these files in VS Code (or another editor):
 
 ```text
 with-composer/
 ├── app/
-│   └── Services/
+│   └── Models/
 │       └── Authentication.php
 ├── composer.json
 └── run.php
@@ -50,32 +50,30 @@ Put this in the `composer.json` file:
 }
 ```
 
-The mapping tells Composer that a PHP class in the `App\` namespace lives under `app/`. For example, `App\Services\Authentication` maps to `app/Services/Authentication.php`. The namespace, directory names, and filename must match.
+The mapping tells Composer that a PHP class in the `App\` namespace lives under `app/`. For example, `App\Models\Authentication` maps to `app/Models/Authentication.php`. The namespace, directory names, and filename must match.
 
 ## 4. Create the class file
 
-Put this in `app/Services/Authentication.php`:
+Put this in `app/Models/Authentication.php`:
 
 ```php
 <?php
 
-namespace App\Services;
+namespace App\Models;
 
 class Authentication
 {
-    public function __construct(
-        private string $passwordHash
-    ) {
-    }
-
-    public function authenticate(string $password): bool
+    public function login(string $username, string $password): bool
     {
-        return password_verify($password, $this->passwordHash);
+        $validUsername = 'admin';
+        $validPassword = '1234';
+
+        return $username === $validUsername && $password === $validPassword;
     }
 }
 ```
 
-The namespace corresponds to the folder path below `app/`: `Services` maps to `Services/`, and `Authentication` maps to `Authentication.php`.
+The namespace corresponds to the folder path below `app/`: `Models` maps to `Models/`, and `Authentication` maps to `Authentication.php`. For this basic demo, `login()` compares the provided username and password with hard-coded values. Do not use hard-coded credentials in a real application.
 
 ## 5. Generate Composer's autoloader
 
@@ -102,17 +100,13 @@ Put this in `run.php`:
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use App\Services\Authentication;
+use App\Models\Authentication;
 
-$storedPasswordHash = password_hash('demo-password', PASSWORD_DEFAULT);
-$authentication = new Authentication($storedPasswordHash);
+$authentication = new Authentication();
 
-if ($authentication->authenticate('demo-password')) {
-    echo 'Authentication successful.';
-} else {
-    echo 'Authentication failed.';
-}
-
+echo $authentication->login('admin', '1234')
+    ? 'Login successful.'
+    : 'Login failed.';
 echo PHP_EOL;
 ```
 
@@ -129,7 +123,7 @@ php .\run.php
 Expected output:
 
 ```text
-Authentication successful.
+Login successful.
 ```
 
 ## What Composer does
@@ -138,4 +132,4 @@ Authentication successful.
 - `composer install` generates `vendor/autoload.php` from the autoload configuration.
 - Your PHP code requires the generated autoloader once; Composer loads matching class files when they are used.
 
-This example demonstrates class autoloading. Its password hash is created in the demo itself; it is not a complete login system.
+This example demonstrates class autoloading and a basic hard-coded login check. The credentials are for demonstration only and should not be used in a real application.
