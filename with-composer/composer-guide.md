@@ -1,21 +1,27 @@
-# Composer Setup Guide
+# Set Up a PHP Project with Composer
 
-This guide shows how to use Composer with PHP namespaces and autoloading.
+This guide walks through creating a small PHP project from scratch and setting up Composer PSR-4 autoloading. Work in the `with-composer` folder; it is a separate example from the demos in `without-composer`.
 
-## 1. Check if Composer is installed
+## 1. Check PHP and Composer
 
-Open the terminal and run:
+Open a terminal in the `with-composer` folder and run:
 
 ```powershell
 php -v
 composer --version
 ```
 
-If both commands work, Composer is ready to use.
+This example uses PHP 8 or later. If either command is not recognized, install PHP or Composer, then open a new terminal and try again. Installing Composer gives you the `composer` command; it does not create this project's files.
 
-## 2. Create the project structure
+## 2. Create the project folders and files
 
-Inside the `with-composer` folder, create:
+From the `with-composer` folder, create the folders:
+
+```powershell
+New-Item -ItemType Directory -Force app\Services
+```
+
+Then create these three files in VS Code (or another editor):
 
 ```text
 with-composer/
@@ -26,9 +32,11 @@ with-composer/
 └── run.php
 ```
 
-## 3. Configure composer.json
+You create and fill in `composer.json`, `Authentication.php`, and `run.php` in the next steps. Composer will generate `vendor/` and `composer.lock` when you install the project; do not create those yourself.
 
-Create `composer.json` and add:
+## 3. Configure `composer.json`
+
+Put this in the `composer.json` file:
 
 ```json
 {
@@ -42,11 +50,11 @@ Create `composer.json` and add:
 }
 ```
 
-This means the namespace `App\` matches the `app/` folder.
+The mapping tells Composer that a PHP class in the `App\` namespace lives under `app/`. For example, `App\Services\Authentication` maps to `app/Services/Authentication.php`. The namespace, directory names, and filename must match.
 
-## 4. Create the Authentication class
+## 4. Create the class file
 
-Create `app/Services/Authentication.php`:
+Put this in `app/Services/Authentication.php`:
 
 ```php
 <?php
@@ -67,7 +75,9 @@ class Authentication
 }
 ```
 
-## 5. Install Composer dependencies
+The namespace corresponds to the folder path below `app/`: `Services` maps to `Services/`, and `Authentication` maps to `Authentication.php`.
+
+## 5. Generate Composer's autoloader
 
 In the `with-composer` folder, run:
 
@@ -75,17 +85,17 @@ In the `with-composer` folder, run:
 composer install
 ```
 
-This creates `vendor/autoload.php`.
+Composer reads `composer.json` and creates `vendor/autoload.php`, which your program will load. This example declares no third-party packages, so there are no application dependencies to download.
 
-If you add or change classes later, refresh the autoloader:
+If you later change the PSR-4 mapping in `composer.json`, regenerate the autoloader:
 
 ```powershell
 composer dump-autoload
 ```
 
-## 6. Use the class in run.php
+## 6. Create the program entry point
 
-Create `run.php`:
+Put this in `run.php`:
 
 ```php
 <?php
@@ -106,7 +116,11 @@ if ($authentication->authenticate('demo-password')) {
 echo PHP_EOL;
 ```
 
-## 7. Run the program
+`vendor/autoload.php` registers Composer's autoloader. When the program first uses `Authentication`, Composer finds and loads its matching PHP file; you do not manually require that class file.
+
+## 7. Run the project
+
+From the `with-composer` folder, run:
 
 ```powershell
 php .\run.php
@@ -118,8 +132,10 @@ Expected output:
 Authentication successful.
 ```
 
-## Notes
+## What Composer does
 
-- You do not need to manually `require` the class file.
-- Composer handles autoloading for you.
-- This is the Composer version of the project.
+- You create the project folders, `composer.json`, class file, and entry-point file.
+- `composer install` generates `vendor/autoload.php` from the autoload configuration.
+- Your PHP code requires the generated autoloader once; Composer loads matching class files when they are used.
+
+This example demonstrates class autoloading. Its password hash is created in the demo itself; it is not a complete login system.
